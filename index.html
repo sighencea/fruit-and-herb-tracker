@@ -14,55 +14,25 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Fruit & Herb Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto"> <!-- ms-auto pushes to the right -->
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#plantFormModal">
+                            <i class="fas fa-plus"></i> Add New Plant
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
     <div class="container mt-5 pt-3">
         <div class="row">
-            <div class="col-md-4">
-                <h2 id="formTitle">Add New Plant</h2>
-                <form id="plantForm">
-                    <input type="hidden" id="plantId">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="type" class="form-label">Type</label>
-                        <select class="form-select" id="type" required>
-                            <option value="Fruit Tree">Fruit Tree</option>
-                            <option value="Herb">Herb</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <!-- MODIFIED W3W INPUT SECTION -->
-                    <div class="mb-3">
-                        <label for="w3w" class="form-label">What3Words Address</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="w3w" placeholder="e.g. filled.count.soap" required>
-                            <button class="btn btn-outline-secondary" type="button" id="getW3wLocationBtn" title="Get current location as What3Words">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- END OF MODIFIED W3W INPUT SECTION -->
-                    <div class="mb-3">
-                        <label for="ripens" class="form-label">Ripens</label>
-                        <input type="text" class="form-control" id="ripens" placeholder="e.g. Late Summer, Year-round">
-                    </div>
-                    <div class="mb-3">
-                        <label for="harvestMonth" class="form-label">Best Harvest Month</label>
-                        <input type="text" class="form-control" id="harvestMonth" placeholder="e.g. September, June">
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Plant</button>
-                </form>
-            </div>
-
-            <div class="col-md-8">
+            <!-- Form column is now removed, plant list can take more space or be centered -->
+            <div class="col-md-12"> <!-- Changed to col-md-12, or adjust as needed -->
                 <h2>My Plants</h2>
                 <div id="plantsListContainer" class="row">
                     <!-- Plant cards will be inserted here by JavaScript -->

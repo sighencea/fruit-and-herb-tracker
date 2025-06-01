@@ -123,7 +123,7 @@ function attachEventListenersToButtons() {
 
 // showJsonForSaving function is completely removed.
 
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
     event.preventDefault();
 
     if (!nameInput.value.trim() || !w3wInput.value.trim()) {

@@ -42,6 +42,8 @@ const getW3wLocationBtn = document.getElementById('getW3wLocationBtn'); // New b
 
 // Store original icon HTML for the W3W button
 let originalW3wButtonIconHTML = ''; // Will be set in DOMContentLoaded
+let plantModalInstance = null; // To hold the Bootstrap Modal instance
+const plantFormModalElement = document.getElementById('plantFormModal'); // Get modal element
 
 async function loadPlants() {
     if (!supabaseClient) {
@@ -169,14 +171,11 @@ async function handleFormSubmit(event) {
                 alert(`Error updating plant: ${error.message}`);
             } else {
                 console.log('Plant updated successfully in Supabase:', data);
-                // alert('Plant updated successfully!'); // Optional success message
-                await loadPlants(); // Refresh the list from Supabase
+                await loadPlants(); // Refresh the list
+                if (plantModalInstance) plantModalInstance.hide(); // Hide modal on successful update
 
-                // Reset form to "Add New Plant" state
-                plantForm.reset();
-                plantIdInput.value = ''; // Clear the hidden ID
-                if (formTitle) formTitle.textContent = 'Add New Plant';
-                nameInput.focus();
+                // Form will be reset by 'show.bs.modal' if opened for 'Add' next.
+                // No explicit reset to "Add" state here is needed if modal is hidden.
             }
         } catch (catchError) {
             console.error('Unexpected error updating plant:', catchError);
@@ -201,8 +200,13 @@ async function handleFormSubmit(event) {
             } else {
                 console.log('Plant added successfully to Supabase:', data);
                 await loadPlants();
-                plantForm.reset();
-                nameInput.focus();
+                // Form reset is good here, but 'show.bs.modal' might also cover it for next 'Add'
+                plantForm.reset(); // Clear form for next potential direct open (though less likely now)
+                plantIdInput.value = ''; // Ensure ID is clear
+                if (formTitle) formTitle.textContent = 'Add New Plant'; // Ensure title is reset
+
+                if (plantModalInstance) plantModalInstance.hide(); // Hide modal on successful add
+                nameInput.focus(); // May or may not be ideal if modal is hidden
             }
         } catch (catchError) {
             console.error('Unexpected error saving plant:', catchError);
@@ -211,13 +215,19 @@ async function handleFormSubmit(event) {
     }
 }
 
-async function handleEditPlant(event) {
+async function handleEditPlant(event) { // Making it async for consistency, though not strictly needed if no awaits inside
     const id = event.target.dataset.id;
-    if (!id) return;
+    if (!id) {
+        console.error("Edit button clicked but no ID found.");
+        alert("Cannot edit: Plant ID not found.");
+        return;
+    }
 
     const plantToEdit = plants.find(p => p.id.toString() === id);
 
     if (plantToEdit) {
+        console.log("Editing plant:", plantToEdit);
+        // Populate the form fields (which are now in the modal)
         if (formTitle) formTitle.textContent = 'Edit Plant';
         plantIdInput.value = plantToEdit.id;
         nameInput.value = plantToEdit.name;
@@ -226,9 +236,17 @@ async function handleEditPlant(event) {
         ripensInput.value = plantToEdit.ripens || '';
         harvestMonthInput.value = plantToEdit.harvestMonth || '';
         notesInput.value = plantToEdit.notes || '';
-        nameInput.focus();
-        if (plantForm) plantForm.scrollIntoView({ behavior: 'smooth' });
+
+        // Show the modal
+        if (plantModalInstance) {
+            plantModalInstance.show();
+        } else {
+            console.error("plantModalInstance not available to show modal for edit.");
+            alert("Error: Could not open edit form.");
+        }
+        // Focus might be better handled by 'shown.bs.modal' if needed for edits
     } else {
+        console.error("Plant to edit not found in array. ID:", id);
         alert("Error: Could not find the plant to edit.");
     }
 }
@@ -383,6 +401,43 @@ async function fetchAndSetW3WAddress() { // This was already async, which is fin
 
 // ... (Rest of the script: DOMContentLoaded, other functions)
 document.addEventListener('DOMContentLoaded', () => {
+    if (plantFormModalElement) {
+        plantModalInstance = new bootstrap.Modal(plantFormModalElement);
+
+        plantFormModalElement.addEventListener('show.bs.modal', function (event) {
+            // event.relatedTarget is the button that triggered the modal
+            const triggerButton = event.relatedTarget;
+            console.log("Modal triggered by:", triggerButton);
+
+            // If triggered by the "Add New Plant" navbar button, or if no plantId is set (e.g. after an edit)
+            // This ensures it's a clean form for adding.
+            // The `handleEditPlant` function will be responsible for setting plantId for edits BEFORE showing the modal.
+
+            // Check if the trigger is the "Add New Plant" button specifically by checking its attributes/content
+            // or more simply, if plantIdInput.value is empty, assume it's for adding a new plant.
+            // handleEditPlant will set plantIdInput.value *before* manually showing the modal.
+            if (!plantIdInput.value) {
+                console.log("Configuring modal for ADD NEW PLANT");
+                if (formTitle) formTitle.textContent = 'Add New Plant';
+                // plantIdInput.value = ''; // Already ensured by the condition
+                plantForm.reset();     // Reset all form fields
+            }
+            // If plantIdInput.value ALREADY has a value here, it means handleEditPlant has populated it,
+            // and the title should also have been set by handleEditPlant. So we don't reset.
+        });
+
+        // Optional: handle 'shown.bs.modal' for autofocus
+        plantFormModalElement.addEventListener('shown.bs.modal', function () {
+            if (!plantIdInput.value) { // Only focus on name for new plants
+                if (nameInput) nameInput.focus();
+            }
+            // If it's an edit, handleEditPlant could set focus to nameInput as well.
+        });
+
+    } else {
+        console.error("plantFormModalElement not found!");
+    }
+
     if (plantForm) {
         plantForm.addEventListener('submit', handleFormSubmit);
     }

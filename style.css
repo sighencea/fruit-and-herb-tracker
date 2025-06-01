@@ -2,3 +2,7 @@
 body {
     padding-top: 56px; /* Adjust if using a fixed navbar */
 }
+
+#getW3wLocationBtn {
+    cursor: pointer;
+}

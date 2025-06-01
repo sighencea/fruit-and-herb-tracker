@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit & Herb Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Fruit & Herb Tracker</a>
+        </div>
+    </nav>
 
+    <div class="container mt-5 pt-3">
+        <div class="row">
+            <div class="col-md-4">
+                <h2 id="formTitle">Add New Plant</h2>
+                <form id="plantForm">
+                    <input type="hidden" id="plantId">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Type</label>
+                        <select class="form-select" id="type" required>
+                            <option value="Fruit Tree">Fruit Tree</option>
+                            <option value="Herb">Herb</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="w3w" class="form-label">What3Words Address</label>
+                        <input type="text" class="form-control" id="w3w" placeholder="e.g. filled.count.soap" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ripens" class="form-label">Ripens</label>
+                        <input type="text" class="form-control" id="ripens" placeholder="e.g. Late Summer, Year-round">
+                    </div>
+                    <div class="mb-3">
+                        <label for="harvestMonth" class="form-label">Best Harvest Month</label>
+                        <input type="text" class="form-control" id="harvestMonth" placeholder="e.g. September, June">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Plant</button>
+                </form>
+            </div>
+
+            <div class="col-md-8">
+                <h2>My Plants</h2>
+                <div id="plantsListContainer" class="row">
+                    <!-- Plant cards will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row mt-4">
+            <div class="col">
+                <h2>Save Data to `plants.json`</h2>
+                <p>After adding, editing, or deleting plants, copy the content below and paste it into your <code>plants.json</code> file in the repository. Then commit and push the changes to GitHub.</p>
+                <textarea id="jsonDataOutput" class="form-control" rows="10" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js" defer></script>
+</body>
+</html>

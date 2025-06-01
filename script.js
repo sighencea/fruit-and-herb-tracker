@@ -23,6 +23,9 @@ try {
     alert('Failed to initialize data connection. Please check the console and ensure Supabase client is available.');
 }
 
+// What3Words API Key
+const W3W_API_KEY = '3J0F7HGD';
+
 // DOM Elements
 const plantsListContainer = document.getElementById('plantsListContainer');
 const formTitle = document.getElementById('formTitle');
@@ -34,7 +37,11 @@ const w3wInput = document.getElementById('w3w');
 const ripensInput = document.getElementById('ripens');
 const harvestMonthInput = document.getElementById('harvestMonth');
 const notesInput = document.getElementById('notes');
+const getW3wLocationBtn = document.getElementById('getW3wLocationBtn'); // New button
 // jsonDataOutput is removed
+
+// Store original icon HTML for the W3W button
+let originalW3wButtonIconHTML = ''; // Will be set in DOMContentLoaded
 
 async function loadPlants() {
     if (!supabaseClient) {
@@ -279,12 +286,114 @@ async function handleDeletePlant(event) {
     }
 }
 
+/**
+ * Handles the success callback for geolocation and then fetches W3W address.
+ * @param {GeolocationPosition} position
+ */
+async function geolocationSuccess(position) { // Made async
+    console.log('Geolocation successful:', position);
+    const { latitude, longitude } = position.coords;
+    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+
+    // Construct W3W API URL
+    const w3wApiUrl = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${latitude}%2C${longitude}&key=${W3W_API_KEY}`;
+
+    try {
+        const response = await fetch(w3wApiUrl);
+        if (!response.ok) {
+            // Try to get more specific error from W3W API response if possible
+            let errorMsg = `HTTP error ${response.status}: ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                if (errorData && errorData.error && errorData.error.message) {
+                    errorMsg = `W3W API Error: ${errorData.error.message}`;
+                }
+            } catch (jsonError) {
+                // Ignore if response isn't JSON or further error occurs
+                console.warn("Could not parse W3W error response as JSON:", jsonError);
+            }
+            throw new Error(errorMsg);
+        }
+
+        const data = await response.json();
+
+        if (data && data.words) {
+            w3wInput.value = data.words;
+            alert('What3Words address fetched successfully!'); // Or a more subtle notification
+        } else {
+            console.error('Error: W3W API response did not contain words.', data);
+            alert('Could not retrieve a valid What3Words address. Response might be malformed.');
+        }
+    } catch (error) {
+        console.error('Error fetching What3Words address:', error);
+        alert(`Failed to fetch What3Words address: ${error.message}`);
+    } finally {
+        // Re-enable the button whether W3W fetch succeeded or failed
+        if (getW3wLocationBtn) {
+            getW3wLocationBtn.disabled = false;
+            getW3wLocationBtn.innerHTML = originalW3wButtonIconHTML; // Restore original icon
+        }
+    }
+}
+
+/**
+ * Handles the error callback for geolocation.
+ * @param {GeolocationPositionError} error
+ */
+function geolocationError(error) {
+    console.error('Geolocation error:', error);
+    let message = 'Error getting location: ';
+    switch (error.code) {
+        case error.PERMISSION_DENIED: message += "User denied the request for Geolocation."; break;
+        case error.POSITION_UNAVAILABLE: message += "Location information is unavailable."; break;
+        case error.TIMEOUT: message += "The request to get user location timed out."; break;
+        default: message += "An unknown error occurred."; break;
+    }
+    alert(message);
+    // Re-enable the button if geolocation itself failed
+    if (getW3wLocationBtn) {
+        getW3wLocationBtn.disabled = false;
+        getW3wLocationBtn.innerHTML = originalW3wButtonIconHTML; // Restore original icon
+    }
+}
+
+/**
+ * Initiates the process of fetching geolocation and then the What3Words address.
+ */
+async function fetchAndSetW3WAddress() { // This was already async, which is fine.
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+    if (!getW3wLocationBtn) return; // Should not happen if button is part of UI
+
+    console.log('Requesting geolocation...');
+    // Store original icon HTML if not already stored (e.g. if button content could change by other means)
+    // However, originalW3wButtonIconHTML is set in DOMContentLoaded, so it should be fine.
+    getW3wLocationBtn.disabled = true;
+    getW3wLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Change to spinner
+
+    navigator.geolocation.getCurrentPosition(geolocationSuccess, geolocationError, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
+    // Note: The button is re-enabled within geolocationSuccess (finally block) and geolocationError.
+}
+
+// ... (Rest of the script: DOMContentLoaded, other functions)
 document.addEventListener('DOMContentLoaded', () => {
     if (plantForm) {
         plantForm.addEventListener('submit', handleFormSubmit);
     }
-    // loadPlants will be called, which currently just clears and calls render.
-    // Actual data loading from Supabase will be in the modified loadPlants.
+
+    if (getW3wLocationBtn) {
+        originalW3wButtonIconHTML = getW3wLocationBtn.innerHTML; // Store the initial icon
+        getW3wLocationBtn.addEventListener('click', fetchAndSetW3WAddress);
+    } else {
+        console.warn("getW3wLocationBtn not found.");
+    }
+
     if (supabaseClient) { // Only call loadPlants if Supabase initialized correctly
         loadPlants();
     } else {

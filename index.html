@@ -30,8 +30,24 @@
 
     <div class="container mt-5 pt-3">
         <div class="row">
-            <!-- Form column is now removed, plant list can take more space or be centered -->
-            <div class="col-md-12"> <!-- Changed to col-md-12, or adjust as needed -->
+            <div class="col-md-12">
+                <!-- ADD BOOTSTRAP TABS HERE -->
+                <ul class="nav nav-tabs mb-3" id="plantViewTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="activePlantsTab" data-bs-toggle="tab" type="button" role="tab" aria-selected="true">
+                            Active Plants
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="archivedPlantsTab" data-bs-toggle="tab" type="button" role="tab" aria-selected="false">
+                            Archived Plants
+                        </button>
+                    </li>
+                </ul>
+                <!-- END OF TABS -->
+
+                <!-- The h2 "My Plants" could be removed or kept depending on preference -->
+                <!-- For now, let's keep it, it might still be relevant as a general section title -->
                 <h2>My Plants</h2>
                 <div id="plantsListContainer" class="row">
                     <!-- Plant cards will be inserted here by JavaScript -->

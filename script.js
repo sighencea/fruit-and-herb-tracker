@@ -213,6 +213,10 @@ async function handleFormSubmit(event) {
                 console.log('Plant updated successfully in Supabase:', data);
                 await loadPlants();
                 if (plantModalInstance) plantModalInstance.hide();
+                // Explicitly reset form state after successful edit
+                plantForm.reset();
+                plantIdInput.value = ''; // Clear the ID from the hidden input
+                if (formTitle) formTitle.textContent = 'Add New Plant'; // Reset title
             }
         } catch (catchError) {
             console.error('Unexpected error updating plant:', catchError);

@@ -116,11 +116,11 @@ function renderPlants() {
         } else {
             buttonsHTML = `
                 <button class="btn btn-sm btn-info unarchive-btn" data-id="${plant.id}">Unarchive</button>
+                <button class="btn btn-sm btn-danger delete-btn ms-1" data-id="${plant.id}">Delete</button>
             `;
+            // Delete button only for archived plants
         }
-        // Delete button is always available
-        buttonsHTML += ` <button class="btn btn-sm btn-danger delete-btn ms-1" data-id="${plant.id}">Delete</button>`;
-
+        // Note: Delete button is removed from active plants view based on subtask requirement.
 
         const card = `
             <div class="col-md-6 col-lg-4 mb-3">

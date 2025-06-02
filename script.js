@@ -34,6 +34,8 @@ const plantIdInput = document.getElementById('plantId'); // Hidden input for ID
 const nameInput = document.getElementById('name');
 const typeInput = document.getElementById('type');
 const w3wInput = document.getElementById('w3w');
+const areaInput = document.getElementById('area'); // ADD THIS LINE
+const townInput = document.getElementById('town'); // ADD THIS LINE
 const ripensInput = document.getElementById('ripens');
 const harvestMonthInput = document.getElementById('harvestMonth');
 const notesInput = document.getElementById('notes');
@@ -102,6 +104,8 @@ function renderPlants() {
                             <h6 class="card-subtitle mb-2 text-muted">${plant.type}</h6>
                             <p class="card-text">
                                 <strong>W3W:</strong> <a href="https://what3words.com/${cardW3W.replace(/\/\/\//g, '')}" target="_blank">${cardW3W}</a><br>
+                                <strong>Area:</strong> ${plant.area || 'N/A'}<br>
+                                <strong>City/Town:</strong> ${plant.town || 'N/A'}<br>
                                 <strong>Ripens:</strong> ${plant.ripens || 'N/A'}<br>
                                 <strong>Harvest:</strong> ${plant.harvestMonth || 'N/A'}<br>
                                 <strong>Notes:</strong> ${plant.notes || 'N/A'}
@@ -140,76 +144,63 @@ async function handleFormSubmit(event) {
         return;
     }
 
-    const idToUpdate = plantIdInput.value; // Get the ID of the plant to update
+    const idToUpdate = plantIdInput.value;
 
-    const plantDataForUpdate = {
+    // Object to hold data from form for Supabase
+    const plantDataPayload = {
         name: nameInput.value.trim(),
         type: typeInput.value,
         w3w: w3wInput.value.trim(),
+        area: areaInput.value.trim() || null,             // ADD THIS
+        town: townInput.value.trim() || null,             // ADD THIS
         ripens: ripensInput.value.trim() || null,
         harvestMonth: harvestMonthInput.value.trim() || null,
         notes: notesInput.value.trim() || null
-        // DO NOT include 'id' in the update payload itself, it's used in .eq()
     };
 
     if (idToUpdate) {
-        // UPDATE EXISTING PLANT in Supabase
-        if (!supabaseClient) {
-            alert("Database connection not available. Cannot update plant.");
-            return;
-        }
-        console.log(`Updating plant with ID ${idToUpdate} in Supabase:`, plantDataForUpdate);
+        // UPDATE EXISTING PLANT
+        if (!supabaseClient) { alert("Database connection not available."); return; }
+        console.log(`Updating plant with ID ${idToUpdate} in Supabase...Data:`, plantDataPayload);
         try {
             const { data, error } = await supabaseClient
                 .from('plants')
-                .update(plantDataForUpdate)
-                .eq('id', idToUpdate) // Specify which row to update
-                .select(); // Optionally .select() to get the updated row(s) back
-
+                .update(plantDataPayload) // Use the augmented object
+                .eq('id', idToUpdate)
+                .select();
+            // ... (rest of update success/error logic, modal hide, loadPlants)
             if (error) {
                 console.error('Error updating plant in Supabase:', error);
                 alert(`Error updating plant: ${error.message}`);
             } else {
                 console.log('Plant updated successfully in Supabase:', data);
-                await loadPlants(); // Refresh the list
-                if (plantModalInstance) plantModalInstance.hide(); // Hide modal on successful update
-
-                // Form will be reset by 'show.bs.modal' if opened for 'Add' next.
-                // No explicit reset to "Add" state here is needed if modal is hidden.
+                await loadPlants();
+                if (plantModalInstance) plantModalInstance.hide();
             }
         } catch (catchError) {
             console.error('Unexpected error updating plant:', catchError);
             alert('An unexpected error occurred while updating the plant.');
         }
     } else {
-        // ADD NEW PLANT to Supabase (already implemented from previous step)
-        if (!supabaseClient) {
-            alert("Database connection not available. Cannot save new plant.");
-            return;
-        }
-        console.log("Adding new plant to Supabase:", plantDataForUpdate); // Re-using variable name, context is fine
+        // ADD NEW PLANT
+        if (!supabaseClient) { alert("Database connection not available."); return; }
+        console.log("Adding new plant to Supabase...Data:", plantDataPayload);
         try {
-            const { data, error } = await supabaseClient
+            const {data, error} = await supabaseClient
                 .from('plants')
-                .insert([plantDataForUpdate]) // Supabase expects an array for insert
+                .insert([plantDataPayload]) // Use the augmented object
                 .select();
-
+            // ... (rest of add success/error logic, modal hide, form reset, loadPlants)
             if (error) {
-                console.error('Error adding plant to Supabase:', error);
-                alert(`Error saving plant: ${error.message}`);
+                console.error('Error adding plant:', error); alert(`Error saving plant: ${error.message}`);
             } else {
-                console.log('Plant added successfully to Supabase:', data);
                 await loadPlants();
-                // Form reset is good here, but 'show.bs.modal' might also cover it for next 'Add'
-                plantForm.reset(); // Clear form for next potential direct open (though less likely now)
+                plantForm.reset(); // Reset form after successful add
                 plantIdInput.value = ''; // Ensure ID is clear
-                if (formTitle) formTitle.textContent = 'Add New Plant'; // Ensure title is reset
-
-                if (plantModalInstance) plantModalInstance.hide(); // Hide modal on successful add
-                nameInput.focus(); // May or may not be ideal if modal is hidden
+                if (plantModalInstance) plantModalInstance.hide();
             }
-        } catch (catchError) {
-            console.error('Unexpected error saving plant:', catchError);
+        } catch (e) {
+            console.error('Unexpected error saving plant:', e);
             alert('An unexpected error occurred while saving the plant.');
         }
     }
@@ -233,6 +224,8 @@ async function handleEditPlant(event) { // Making it async for consistency, thou
         nameInput.value = plantToEdit.name;
         typeInput.value = plantToEdit.type;
         w3wInput.value = plantToEdit.w3w;
+        areaInput.value = plantToEdit.area || '';         // ADD THIS
+        townInput.value = plantToEdit.town || '';         // ADD THIS
         ripensInput.value = plantToEdit.ripens || '';
         harvestMonthInput.value = plantToEdit.harvestMonth || '';
         notesInput.value = plantToEdit.notes || '';
